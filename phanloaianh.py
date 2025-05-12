@@ -34,7 +34,6 @@ Y_test = to_categorical(y_test, 10)
 print('Dữ liệu y ban đầu:', y_train[0])
 print('Dữ liệu y sau one-hot encoding:', Y_train[0])
 
-# 4. Định nghĩa mô hình CNN
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1), padding='same'),  # Thêm padding='same'
     Conv2D(32, (3, 3), activation='relu', padding='same'),
@@ -43,6 +42,7 @@ model = Sequential([
     Dense(128, activation='relu'),
     Dense(10, activation='softmax')
 ])
+
 
 # 5. Compile mô hình
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
