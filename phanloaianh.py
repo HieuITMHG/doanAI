@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -19,7 +19,6 @@ print("Kích thước tập validation:", X_val.shape)
 print("Kích thước tập test:", X_test.shape)
 
 # 2. Reshape và chuẩn hóa dữ liệu
-# Thêm chiều kênh (1 cho grayscale) và chuẩn hóa về [0, 1]
 X_train = X_train.reshape(X_train.shape[0], 28, 28, 1).astype('float32') / 255
 X_val = X_val.reshape(X_val.shape[0], 28, 28, 1).astype('float32') / 255
 X_test = X_test.reshape(X_test.shape[0], 28, 28, 1).astype('float32') / 255
@@ -34,8 +33,9 @@ Y_test = to_categorical(y_test, 10)
 print('Dữ liệu y ban đầu:', y_train[0])
 print('Dữ liệu y sau one-hot encoding:', Y_train[0])
 
+# 4. Xây dựng mô hình
 model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1), padding='same'),  # Thêm padding='same'
+    Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1), padding='same'),
     Conv2D(32, (3, 3), activation='relu', padding='same'),
     MaxPooling2D(pool_size=(2, 2)),
     Flatten(),
@@ -43,11 +43,10 @@ model = Sequential([
     Dense(10, activation='softmax')
 ])
 
-
 # 5. Compile mô hình
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-# 6. Thiết lập callback để lưu mô hình tốt nhất và dừng sớm nếu không cải thiện
+# 6. Thiết lập callback
 checkpoint = ModelCheckpoint('best_model.keras', monitor='val_accuracy', save_best_only=True, mode='max', verbose=1)
 early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, restore_best_weights=True)
 
@@ -69,17 +68,29 @@ history_df = pd.DataFrame({
     'train_accuracy': H.history['accuracy'],
     'val_accuracy': H.history['val_accuracy']
 })
-history_df.to_csv('training_history.csv', index=False)
-print("Đã lưu lịch sử huấn luyện vào 'training_history.csv'")
 
-# 9. Vẽ đồ thị loss và accuracy
-plt.figure(figsize=(10, 5))
+# 9. Đánh giá trên tập test và lưu kết quả
+score = model.evaluate(X_test, Y_test, verbose=0)
+test_loss = score[0]
+test_accuracy = score[1]
+print("Test Loss:", test_loss)
+print("Test Accuracy:", test_accuracy)
+
+# Thêm kết quả test vào DataFrame (lặp lại giá trị test cho mỗi epoch để dễ vẽ đồ thị)
+history_df['test_loss'] = test_loss
+history_df['test_accuracy'] = test_accuracy
+history_df.to_csv('training_history.csv', index=False)
+print("Đã lưu lịch sử huấn luyện và đánh giá trên tập test vào 'training_history_with_test.csv'")
+
+# 10. Vẽ đồ thị loss và accuracy 
+plt.figure(figsize=(12, 5))
 
 # Đồ thị Loss
 plt.subplot(1, 2, 1)
 plt.plot(history_df['epoch'], history_df['train_loss'], label='Training Loss')
 plt.plot(history_df['epoch'], history_df['val_loss'], label='Validation Loss')
-plt.title('Training & Validation Loss')
+plt.axhline(y=test_loss, color='r', linestyle='--', label='Test Loss')
+plt.title('Training, Validation & Test Loss')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
@@ -88,27 +99,17 @@ plt.legend()
 plt.subplot(1, 2, 2)
 plt.plot(history_df['epoch'], history_df['train_accuracy'], label='Training Accuracy')
 plt.plot(history_df['epoch'], history_df['val_accuracy'], label='Validation Accuracy')
-plt.title('Training & Validation Accuracy')
+plt.axhline(y=test_accuracy, color='r', linestyle='--', label='Test Accuracy')
+plt.title('Training, Validation & Test Accuracy')
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend()
 
 plt.tight_layout()
-plt.savefig('training_plots.png')  # Lưu đồ thị vào file
+plt.savefig('training_plots.png')
 plt.show()
-print("Đã lưu đồ thị vào 'training_plots.png'")
-
-# 10. Đánh giá mô hình trên tập test
-score = model.evaluate(X_test, Y_test, verbose=0)
-print("Test Loss:", score[0])
-print("Test Accuracy:", score[1])
+print("Đã lưu đồ thị với kết quả test vào 'training_plots.png'")
 
 # 11. Lưu mô hình đã huấn luyện
 model.save('final_model.keras')
 print("Đã lưu mô hình vào 'final_model.keras'")
-
-# 12. Phần dự đoán ảnh (được comment lại theo yêu cầu)
-
-plt.imshow(X_test[0].reshape(28, 28), cmap='gray')
-y_predict = model.predict(X_test[1].reshape(1, 28, 28, 1))
-print('Giá trị dự đoán:', np.argmax(y_predict))

@@ -14,8 +14,9 @@ model = load_model('final_model.keras')
 print("Đã load mô hình từ 'final_model.keras'")
 
 # 4. Dự đoán ảnh
-plt.imshow(X_test[8].reshape(28, 28), cmap='gray')
-print(X_test[8])
-y_predict = model.predict(X_test[8].reshape(1, 28, 28, 1))
+index = 4
+plt.imshow(X_test[index].reshape(28, 28), cmap='gray')
+print(X_test[index])
+y_predict = model.predict(X_test[index].reshape(1, 28, 28, 1))
 print('Giá trị dự đoán:', np.argmax(y_predict))
 plt.show()
