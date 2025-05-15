@@ -69,28 +69,25 @@ history_df = pd.DataFrame({
     'val_accuracy': H.history['val_accuracy']
 })
 
-# 9. Đánh giá trên tập test và lưu kết quả
+# 9. Đánh giá trên tập test và in kết quả
 score = model.evaluate(X_test, Y_test, verbose=0)
 test_loss = score[0]
 test_accuracy = score[1]
 print("Test Loss:", test_loss)
 print("Test Accuracy:", test_accuracy)
 
-# Thêm kết quả test vào DataFrame (lặp lại giá trị test cho mỗi epoch để dễ vẽ đồ thị)
-history_df['test_loss'] = test_loss
-history_df['test_accuracy'] = test_accuracy
+# Lưu lịch sử huấn luyện (chỉ train và val)
 history_df.to_csv('training_history.csv', index=False)
-print("Đã lưu lịch sử huấn luyện và đánh giá trên tập test vào 'training_history_with_test.csv'")
+print("Đã lưu lịch sử huấn luyện vào 'training_history.csv'")
 
-# 10. Vẽ đồ thị loss và accuracy 
+# 10. Vẽ đồ thị loss và accuracy (chỉ train và val)
 plt.figure(figsize=(12, 5))
 
 # Đồ thị Loss
 plt.subplot(1, 2, 1)
 plt.plot(history_df['epoch'], history_df['train_loss'], label='Training Loss')
 plt.plot(history_df['epoch'], history_df['val_loss'], label='Validation Loss')
-plt.axhline(y=test_loss, color='r', linestyle='--', label='Test Loss')
-plt.title('Training, Validation & Test Loss')
+plt.title('Training and Validation Loss')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
@@ -99,8 +96,7 @@ plt.legend()
 plt.subplot(1, 2, 2)
 plt.plot(history_df['epoch'], history_df['train_accuracy'], label='Training Accuracy')
 plt.plot(history_df['epoch'], history_df['val_accuracy'], label='Validation Accuracy')
-plt.axhline(y=test_accuracy, color='r', linestyle='--', label='Test Accuracy')
-plt.title('Training, Validation & Test Accuracy')
+plt.title('Training and Validation Accuracy')
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend()
@@ -108,7 +104,7 @@ plt.legend()
 plt.tight_layout()
 plt.savefig('training_plots.png')
 plt.show()
-print("Đã lưu đồ thị với kết quả test vào 'training_plots.png'")
+print("Đã lưu đồ thị vào 'training_plots.png'")
 
 # 11. Lưu mô hình đã huấn luyện
 model.save('final_model.keras')
